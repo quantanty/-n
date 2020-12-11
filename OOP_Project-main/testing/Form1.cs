@@ -26,7 +26,6 @@ namespace testing
         Bitmap PURPLE = new Bitmap("TETRIS COLORS\\PURPLE BRICK.png");
         Bitmap RED = new Bitmap("TETRIS COLORS\\RED BRICK.png");
         Bitmap YELLOW = new Bitmap("TETRIS COLORS\\YELLOW BRICK.png");
-        Bitmap bmpBoard = new Bitmap(250, 500);
         public Form1()
         {
             InitializeComponent();
@@ -40,32 +39,35 @@ namespace testing
         private void lastTimer_Tick(object sender, EventArgs e)
         {
             lastTimer.Stop();
-            phatSinhBrick();
-            gamePanel.Invalidate();
-            dropTimer.Start();
-        }
-        private void dropTimer_Tick(object sender, EventArgs e)
-        {
-            if (xuong())
-            {
-                y++;
-            }
-            else
+            if (!xuong())
             {
                 dropTimer.Stop();
                 for (int i = 0; i < 4; i++)
                 {
                     for (int j = 0; j < 4; j++)
                     {
-                        if (brick.HinhDang[i,j] != 0)
+                        if (brick.HinhDang[i, j] != 0)
                         {
                             board[i + x, j + y] = brick.HinhDang[i, j];
                         }
                     }
                 }
-                lastTimer.Start();
+                phatSinhBrick();
+                gamePanel.Invalidate();
+                dropTimer.Start();
             }
-            gamePanel.Invalidate();
+        }
+        private void dropTimer_Tick(object sender, EventArgs e)
+        {
+            if (!lastTimer.Enabled)
+            {
+                y++;
+                gamePanel.Invalidate();
+                if (!xuong())
+                {
+                    lastTimer.Start();
+                }
+            }
         }
 
         private Bitmap getColorBrick(int x)
@@ -196,43 +198,103 @@ namespace testing
             }
             return true;
         }
+        private bool trai()
+        {
+            int xThu = x - 1, yThu = y;
+            foreach (Brick.point p in brick.vienTrai)
+            {
+                if (p.X + xThu < 0)
+                    return false;
+                if (board[p.X + xThu, p.Y + yThu] != 0)
+                    return false;
+            }
+            return true;
+        }
+        private bool phai()
+        {
+            int xThu = x + 1, yThu = y;
+            foreach (Brick.point p in brick.vienPhai)
+            {
+                if (p.X + xThu > 10)
+                    return false;
+                if (board[p.X + xThu, p.Y + yThu] != 0)
+                    return false;
+            }
+            return true;
+        }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Up)
             {
-                
+
             }
-            if (e.KeyCode == Keys.Down)
+            else if (e.KeyCode == Keys.Down)
             {
-                dropTimer.Stop();
-                if (xuong())
+                if (!lastTimer.Enabled)
                 {
-                    dropTimer.Stop();
                     y++;
-                    dropTimer.Start();
+                    gamePanel.Invalidate();
+                    if (!xuong())
+                    {
+                        lastTimer.Start();
+                    }
                 }
                 else
                 {
-                    dropTimer.Stop();
-                    for (int i = 0; i < 4; i++)
+                    lastTimer.Stop();
+                    if (!xuong())
                     {
-                        for (int j = 0; j < 4; j++)
+                        dropTimer.Stop();
+                        for (int i = 0; i < 4; i++)
                         {
-                            if (brick.HinhDang[i, j] != 0)
+                            for (int j = 0; j < 4; j++)
                             {
-                                board[i + x, j + y] = brick.HinhDang[i, j];
+                                if (brick.HinhDang[i, j] != 0)
+                                {
+                                    board[i + x, j + y] = brick.HinhDang[i, j];
+                                }
                             }
                         }
+                        phatSinhBrick();
+                        gamePanel.Invalidate();
+                        dropTimer.Start();
                     }
-                    lastTimer.Start();
                 }
             }
-            if (e.KeyCode == Keys.Right)
-                if (x < 9)
+            else if (e.KeyCode == Keys.Right)
+            {
+                if (phai())
+                {
                     x++;
-            if (e.KeyCode == Keys.Left)
-                if (x > 0)
+                    if (!xuong())
+                    {
+                        if (!lastTimer.Enabled)
+                            lastTimer.Start();
+                    }
+                    else
+                    {
+                        if (lastTimer.Enabled)
+                            lastTimer.Stop();
+                    }
+                }
+            }
+            else if (e.KeyCode == Keys.Left)
+            {
+                if (trai())
+                {
                     x--;
+                    if (!xuong())
+                    {
+                        if (!lastTimer.Enabled)
+                            lastTimer.Start();
+                    }
+                    else
+                    {
+                        if (lastTimer.Enabled)
+                            lastTimer.Stop();
+                    }
+                }
+            }
 
             gamePanel.Invalidate();
         }
